@@ -1,4 +1,4 @@
-package com.example.book
+package com.example.book.data
 
 import java.io.Serializable
 
@@ -7,4 +7,4 @@ data class AudioFile(
     val artist: String,
     val path: String,
     val duration: Long
-) : Serializable
+) : Serializable 

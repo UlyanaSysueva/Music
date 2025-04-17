@@ -1,4 +1,5 @@
-package com.example.book
+package com.example.book.presentation
+
 import android.Manifest
 import android.content.Intent
 import android.os.Bundle
@@ -14,11 +15,15 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.book.R
+import com.example.book.data.DbUsers
+import com.example.book.presentation.Home
+import com.example.book.presentation.Registration
 
 class MainActivity : AppCompatActivity() {
     private lateinit var sharedPreferences: SharedPreferences
     private val PERMISSION_REQUEST_CODE = 101
-    private val PREF_FIRST_RUN = "first_run" // Ключ для проверки первого запуска
+    private val PREF_FIRST_RUN = "first_run"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,21 +42,17 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        // Проверяем, есть ли сохраненный email
         if (sharedPreferences.contains("EMAIL_KEY")) {
             val intent = Intent(this, Home::class.java)
             intent.putExtra("EMAIL_KEY", sharedPreferences.getString("EMAIL_KEY", ""))
             startActivity(intent)
-            finish() // Закрываем активность входа
-            return // Прерываем выполнение дальнейшего кода
+            finish()
+            return
         }
 
-        // Проверяем первый запуск
         val isFirstRun = sharedPreferences.getBoolean(PREF_FIRST_RUN, true)
         if (isFirstRun) {
-            // Запрашиваем разрешения только при первом запуске
             checkPermissions()
-            // Помечаем, что первый запуск уже был
             with(sharedPreferences.edit()) {
                 putBoolean(PREF_FIRST_RUN, false)
                 apply()
@@ -101,7 +102,7 @@ class MainActivity : AppCompatActivity() {
                 startActivity(Intent(this, Home::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
                 })
-                finish() // Эта строка теперь правильно расположена
+                finish()
             } else {
                 Toast.makeText(this, "Неверный email или пароль", Toast.LENGTH_LONG).show()
             }
@@ -128,16 +129,12 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
             PERMISSION_REQUEST_CODE -> {
-                // Здесь можно обработать результат, но мы остаемся на странице в любом случае
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Разрешение получено
                     Toast.makeText(this, "Разрешение получено", Toast.LENGTH_SHORT).show()
                 } else {
-                    // Разрешение отклонено
                     Toast.makeText(this, "Разрешение отклонено", Toast.LENGTH_SHORT).show()
                 }
-                // Не переходим на другую страницу, остаемся на MainActivity
             }
         }
     }
-}
+} 

@@ -1,10 +1,11 @@
-package com.example.book
+package com.example.book.data
 
 import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import com.example.book.domain.User
 
 class DbUsers(val context: Context, val factory: SQLiteDatabase.CursorFactory?) :
     SQLiteOpenHelper(context, "app.db", factory, 1) {
@@ -54,4 +55,4 @@ class DbUsers(val context: Context, val factory: SQLiteDatabase.CursorFactory?) 
         cursor.close()
         return exists
     }
-}
+} 

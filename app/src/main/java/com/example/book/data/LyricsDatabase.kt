@@ -1,4 +1,4 @@
-package com.example.book
+package com.example.book.data
 
 import android.content.Context
 import kotlinx.coroutines.Dispatchers
@@ -38,4 +38,4 @@ object LyricsDatabase {
             getLyricsFile(title, artist).delete()
         }
     }
-}
+} 

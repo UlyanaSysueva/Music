@@ -1,4 +1,4 @@
-package com.example.book
+package com.example.book.presentation
 
 import android.app.Activity
 import android.content.Intent
@@ -23,10 +23,13 @@ import android.widget.ImageButton
 import android.widget.SearchView
 import android.widget.SeekBar
 import android.widget.Toast
+import com.example.book.R
 import java.io.File
 import java.io.IOException
 import java.util.Locale
-
+import com.example.book.data.AudioFile
+import com.example.book.presentation.MusicAdapter
+import com.example.book.presentation.MusicAdapterListener
 
 class Home : AppCompatActivity(), MusicAdapterListener {
     private lateinit var sharedPreferences: SharedPreferences
@@ -34,14 +37,14 @@ class Home : AppCompatActivity(), MusicAdapterListener {
     private lateinit var mediaPlayer: MediaPlayer
     private var currentPosition = -1
     private var isPlaying = false
-    private lateinit var musicList: List<AudioFile>
+    private var musicList = mutableListOf<AudioFile>()
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var runnable: Runnable
     private lateinit var adapter: MusicAdapter
     private var allTracks = mutableListOf<AudioFile>()
     private var isShuffleMode = false
-    private var shuffleOrder = mutableListOf<Int>() // Порядок воспроизведения в shuffle режиме
-    private var currentShuffleIndex = 0 // Текущая позиция в shuffleOrder
+    private var shuffleOrder = mutableListOf<Int>()
+    private var currentShuffleIndex = 0
     private var isPrepared = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,7 +55,6 @@ class Home : AppCompatActivity(), MusicAdapterListener {
         setContentView(R.layout.activity_home)
         sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE)
 
-        // Инициализация остальных компонентов
         initViews()
         setupMediaPlayer()
         setupPlayerControls()
@@ -105,7 +107,6 @@ class Home : AppCompatActivity(), MusicAdapterListener {
                 false
             }
         }
-
     }
 
     private fun loadMusicFiles() {
@@ -150,7 +151,8 @@ class Home : AppCompatActivity(), MusicAdapterListener {
 
         allTracks.clear()
         allTracks.addAll(tempList)
-        musicList = allTracks
+        musicList.clear()
+        musicList.addAll(tempList)
         updateRecyclerView(tempList)
     }
 
@@ -171,8 +173,8 @@ class Home : AppCompatActivity(), MusicAdapterListener {
     private fun filterTracks(query: String) {
         if (allTracks.isEmpty()) return
 
-        musicList = if (query.isEmpty()) {
-            allTracks
+        val filteredList = if (query.isEmpty()) {
+            allTracks.toList()
         } else {
             val lowerCaseQuery = query.lowercase(Locale.getDefault())
             allTracks.filter {
@@ -180,6 +182,9 @@ class Home : AppCompatActivity(), MusicAdapterListener {
                         it.artist.lowercase(Locale.getDefault()).contains(lowerCaseQuery)
             }
         }
+        
+        musicList.clear()
+        musicList.addAll(filteredList)
 
         runOnUiThread {
             adapter.updateList(musicList)
@@ -188,13 +193,14 @@ class Home : AppCompatActivity(), MusicAdapterListener {
 
     private fun updateRecyclerView(list: List<AudioFile>) {
         if (!isFinishing && !isDestroyed) {
-            musicList = list
+            musicList.clear()
+            musicList.addAll(list)
             runOnUiThread {
                 if (!::adapter.isInitialized) {
-                    adapter = MusicAdapter(list, this, this) // this передает реализацию MusicAdapterListener
+                    adapter = MusicAdapter(musicList, this, this)
                     recyclerView.adapter = adapter
                 } else {
-                    adapter.updateList(list)
+                    adapter.updateList(musicList)
                 }
             }
         }
@@ -240,7 +246,27 @@ class Home : AppCompatActivity(), MusicAdapterListener {
             Log.e("MediaPlayer", "Error: ${e.message}")
             Toast.makeText(this, "Error playing track", Toast.LENGTH_SHORT).show()
         }
+
     }
+
+    private fun generateShuffleOrder() {
+        if (musicList.isEmpty()) {
+            shuffleOrder = mutableListOf()
+            return
+        }
+        // Создаем список всех индексов, кроме текущего
+        val indices = musicList.indices.filter { it != currentPosition }.toMutableList()
+        indices.shuffle()
+
+        // Добавляем текущий трек в начало
+        if (currentPosition in musicList.indices) {
+            indices.add(0, currentPosition)
+        }
+
+        shuffleOrder = indices
+        currentShuffleIndex = 0
+    }
+
 
 
     private fun updatePlayerUI(track: AudioFile) {
@@ -264,6 +290,56 @@ class Home : AppCompatActivity(), MusicAdapterListener {
 
     private fun updateNowPlayingIndicator() {
         (recyclerView.adapter as? MusicAdapter)?.setNowPlayingPosition(currentPosition)
+    }
+
+    private fun playNext() {
+        if (musicList.isEmpty()) return
+
+        val nextPos = if (isShuffleMode) {
+            // Берем следующий трек из shuffleOrder
+            currentShuffleIndex = (currentShuffleIndex + 1) % shuffleOrder.size
+            shuffleOrder[currentShuffleIndex]
+        } else {
+            (currentPosition + 1) % musicList.size
+        }
+
+        playMusic(nextPos)
+
+    }
+
+    private fun playPrevious() {
+        if (musicList.isEmpty()) return
+
+        val prevPos = if (isShuffleMode) {
+            // Берем предыдущий трек из shuffleOrder
+            currentShuffleIndex = if (currentShuffleIndex - 1 < 0) shuffleOrder.size - 1 else currentShuffleIndex - 1
+            shuffleOrder[currentShuffleIndex]
+        } else {
+            if (currentPosition - 1 < 0) musicList.size - 1 else currentPosition - 1
+        }
+
+        playMusic(prevPos)
+
+    }
+
+    private fun toggleShuffleMode() {
+        isShuffleMode = !isShuffleMode
+        if (isShuffleMode) {
+            shuffleOrder = (0 until musicList.size).toMutableList()
+            shuffleOrder.shuffle()
+            if (currentPosition != -1) {
+                val currentIndex = shuffleOrder.indexOf(currentPosition)
+                if (currentIndex != -1) {
+                    val temp = shuffleOrder[0]
+                    shuffleOrder[0] = currentPosition
+                    shuffleOrder[currentIndex] = temp
+                }
+                currentShuffleIndex = 0
+            }
+        }
+        findViewById<ImageButton>(R.id.btnShuffle)?.apply {
+            setColorFilter(if (isShuffleMode) Color.CYAN else Color.WHITE)
+        }
     }
 
     private fun setupPlayerControls() {
@@ -296,9 +372,20 @@ class Home : AppCompatActivity(), MusicAdapterListener {
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
-
     }
 
+    override fun onCurrentTrackLyricsRequested() {
+        if (currentPosition != -1) {
+            showLyricsDialog(musicList[currentPosition])
+        } else {
+            Toast.makeText(this, "Нет играющего трека", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun showLyricsDialog(track: AudioFile) {
+        LyricsDialogFragment.newInstance(track.title, track.artist)
+            .show(supportFragmentManager, "lyrics_dialog")
+    }
 
 
     private fun toggleShuffle() {
@@ -314,24 +401,6 @@ class Home : AppCompatActivity(), MusicAdapterListener {
         }
     }
 
-    private fun generateShuffleOrder() {
-        if (musicList.isEmpty()) {
-            shuffleOrder = mutableListOf()
-            return
-        }
-        // Создаем список всех индексов, кроме текущего
-        val indices = musicList.indices.filter { it != currentPosition }.toMutableList()
-        indices.shuffle()
-
-        // Добавляем текущий трек в начало
-        if (currentPosition in musicList.indices) {
-            indices.add(0, currentPosition)
-        }
-
-        shuffleOrder = indices
-        currentShuffleIndex = 0
-    }
-
     private fun updateShuffleButton() {
         val btnShuffle = findViewById<ImageButton>(R.id.btnShuffle)
         btnShuffle.setColorFilter(
@@ -339,6 +408,15 @@ class Home : AppCompatActivity(), MusicAdapterListener {
             PorterDuff.Mode.SRC_IN
         )
         btnShuffle.animate().rotationBy(360f).setDuration(300).start()
+    }
+
+    private fun pauseMusic() {
+        if (isPlaying && isPrepared) {
+            mediaPlayer.pause()
+            isPlaying = false
+            findViewById<ImageButton>(R.id.btnPlayPause).setImageResource(R.drawable.ic_play)
+            handler.removeCallbacks(runnable)
+        }
     }
 
     private fun playCurrent() {
@@ -356,70 +434,6 @@ class Home : AppCompatActivity(), MusicAdapterListener {
         }
     }
 
-    private fun pauseMusic() {
-        if (isPlaying && isPrepared) {
-            mediaPlayer.pause()
-            isPlaying = false
-            findViewById<ImageButton>(R.id.btnPlayPause).setImageResource(R.drawable.ic_play)
-            handler.removeCallbacks(runnable)
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        if (!isFinishing) {
-            handler.removeCallbacks(runnable)
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (isPlaying) {
-            startSeekBarUpdate()
-        }
-    }
-
-    private fun playNext() {
-        if (musicList.isEmpty()) return
-
-        val nextPos = if (isShuffleMode) {
-            // Берем следующий трек из shuffleOrder
-            currentShuffleIndex = (currentShuffleIndex + 1) % shuffleOrder.size
-            shuffleOrder[currentShuffleIndex]
-        } else {
-            (currentPosition + 1) % musicList.size
-        }
-
-        playMusic(nextPos)
-    }
-
-    private fun playPrevious() {
-        if (musicList.isEmpty()) return
-
-        val prevPos = if (isShuffleMode) {
-            // Берем предыдущий трек из shuffleOrder
-            currentShuffleIndex = if (currentShuffleIndex - 1 < 0) shuffleOrder.size - 1 else currentShuffleIndex - 1
-            shuffleOrder[currentShuffleIndex]
-        } else {
-            if (currentPosition - 1 < 0) musicList.size - 1 else currentPosition - 1
-        }
-
-        playMusic(prevPos)
-    }
-
-    private fun showLyricsDialog(track: AudioFile) {
-        LyricsDialogFragment.newInstance(track.title, track.artist)
-            .show(supportFragmentManager, "lyrics_dialog")
-    }
-
-    override fun onCurrentTrackLyricsRequested() {
-        if (currentPosition != -1) {
-            showLyricsDialog(musicList[currentPosition])
-        } else {
-            Toast.makeText(this, "Нет играющего трека", Toast.LENGTH_SHORT).show()
-        }
-    }
-
     override fun onLyricsButtonClicked(track: AudioFile) {
         showLyricsDialog(track)
     }
@@ -428,19 +442,15 @@ class Home : AppCompatActivity(), MusicAdapterListener {
         playMusic(position) // Реализация из предыдущих исправлений
     }
 
+
     private fun loadUserData() {
-        findViewById<TextView>(R.id.email).text = sharedPreferences.getString("EMAIL_KEY", "")
-        findViewById<ImageButton>(R.id.logOut).setOnClickListener {
-            sharedPreferences.edit().remove("EMAIL_KEY").apply()
-            startActivity(Intent(this, MainActivity::class.java))
-            finish()
-        }
+        val email = sharedPreferences.getString("EMAIL_KEY", "")
+        findViewById<TextView>(R.id.email).text = email
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        mediaPlayer.release()
         handler.removeCallbacks(runnable)
-
+        mediaPlayer.release()
     }
-}
+} 

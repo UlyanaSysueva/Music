@@ -1,4 +1,4 @@
-package com.example.book
+package com.example.book.presentation
 
 import android.app.AlertDialog
 import android.os.Bundle
@@ -14,13 +14,14 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
+import com.example.book.R
 
 class LyricsDialogFragment : DialogFragment() {
 
     private lateinit var progressBar: ProgressBar
     private lateinit var lyricsText: EditText
     private lateinit var saveButton: Button
-    private var savedLyrics: String = "" // Для хранения сохраненного текста
+    private var savedLyrics: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,7 +35,6 @@ class LyricsDialogFragment : DialogFragment() {
     ): View {
         val view = inflater.inflate(R.layout.fragment_lyrics, container, false)
 
-        // Инициализация всех View элементов
         progressBar = view.findViewById(R.id.progressBar)
         val titleView = view.findViewById<TextView>(R.id.lyricsTrackTitle)
         val artistView = view.findViewById<TextView>(R.id.lyricsTrackArtist)
@@ -42,16 +42,13 @@ class LyricsDialogFragment : DialogFragment() {
         lyricsText = view.findViewById(R.id.lyricsText)
         saveButton = view.findViewById(R.id.btnSaveLyrics)
 
-        // Получение аргументов
         val args = arguments ?: return view
         val title = args.getString("title") ?: ""
         val artist = args.getString("artist") ?: ""
 
-        // Установка данных
         titleView.text = title
         artistView.text = artist
 
-        // Обработчики кликов
         closeButton.setOnClickListener {
             dismiss()
         }
@@ -60,7 +57,6 @@ class LyricsDialogFragment : DialogFragment() {
             saveLyrics()
         }
 
-        // Отслеживание изменений текста для активации кнопки сохранения
         lyricsText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
@@ -73,14 +69,12 @@ class LyricsDialogFragment : DialogFragment() {
     }
 
     private fun saveLyrics() {
-        // Показать ProgressBar
         progressBar.visibility = View.VISIBLE
         saveButton.isEnabled = false
 
         val lyrics = lyricsText.text.toString()
-        savedLyrics = lyrics // Сохраняем текст
+        savedLyrics = lyrics
 
-        // Здесь должна быть реальная логика сохранения
         Handler().postDelayed({
             progressBar.visibility = View.GONE
             saveButton.isEnabled = true
@@ -89,7 +83,6 @@ class LyricsDialogFragment : DialogFragment() {
     }
 
     private fun getSavedLyrics(): String {
-        // В реальном приложении здесь должно быть получение сохраненного текста
         return savedLyrics
     }
 
@@ -140,4 +133,4 @@ class LyricsDialogFragment : DialogFragment() {
             }
         }
     }
-}
+} 

@@ -1,4 +1,5 @@
-package com.example.book
+package com.example.book.presentation
+
 import android.content.Context
 import android.graphics.Color
 import android.util.Log
@@ -8,6 +9,8 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.book.R
+import com.example.book.data.AudioFile
 
 class MusicAdapter(
     private var musicList: List<AudioFile>,
@@ -53,6 +56,7 @@ class MusicAdapter(
                 }
             }
         }
+
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MusicViewHolder {
@@ -66,7 +70,6 @@ class MusicAdapter(
         holder.artist.text = music.artist
         holder.duration.text = formatDuration(music.duration)
 
-        // Обновляем фон
         holder.itemView.setBackgroundColor(
             if (position == nowPlayingPosition) Color.parseColor("#2A2A2A")
             else Color.TRANSPARENT
@@ -85,4 +88,4 @@ class MusicAdapter(
     }
 
     override fun getItemCount() = musicList.size
-}
+} 
