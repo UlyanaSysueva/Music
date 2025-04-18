@@ -89,22 +89,15 @@ class Home : AppCompatActivity(), MusicAdapterListener {
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.setHasFixedSize(true)
 
-        val logOutButton = findViewById<ImageButton>(R.id.logOut)
-        logOutButton.setOnClickListener {
-            // Очищаем данные сессии
-            sharedPreferences.edit().clear().apply()
-            
+        findViewById<ImageButton>(R.id.logOut).setOnClickListener {
+            sharedPreferences.edit().remove("EMAIL_KEY").apply()
             // Останавливаем воспроизведение
             if (::mediaPlayer.isInitialized) {
                 mediaPlayer.stop()
                 mediaPlayer.release()
             }
-            
-            // Переходим на экран входа
-            val intent = Intent(this, MainActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-            finish()
+            startActivity(Intent(this, MainActivity::class.java))
+//            finish()
         }
     }
 
