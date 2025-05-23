@@ -1,6 +1,6 @@
-package com.example.book.presentation
+package com.example.book.mvp.contract
 
-import com.example.book.data.AudioFile
+import com.example.book.mvp.model.AudioFile
 
 interface MusicAdapterListener {
     fun onTrackSelected(track: AudioFile, position: Int) // Для воспроизведения

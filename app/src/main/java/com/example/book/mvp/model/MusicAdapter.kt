@@ -1,4 +1,4 @@
-package com.example.book.presentation
+package com.example.book.mvp.model
 
 import android.content.Context
 import android.graphics.Color
@@ -10,12 +10,13 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.book.R
-import com.example.book.data.AudioFile
+import com.example.book.mvp.contract.MusicAdapterListener
 
 class MusicAdapter(
     private var musicList: List<AudioFile>,
     private val context: Context,
-    private val listener: MusicAdapterListener) :
+    private val listener: MusicAdapterListener
+) :
     RecyclerView.Adapter<MusicAdapter.MusicViewHolder>() {
 
     private var nowPlayingPosition = -1

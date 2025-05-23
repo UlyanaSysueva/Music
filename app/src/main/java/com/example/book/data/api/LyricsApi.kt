@@ -1,6 +1,6 @@
 package com.example.book.data.api
 
-import com.example.book.data.model.LyricsResponse
+import com.example.book.mvp.model.LyricsResponse
 import retrofit2.http.GET
 import retrofit2.http.Path
 

@@ -1,4 +1,4 @@
-package com.example.book.data
+package com.example.book.mvp.model
 
 import java.io.Serializable
 

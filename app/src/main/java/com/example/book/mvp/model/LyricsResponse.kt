@@ -1,4 +1,4 @@
-package com.example.book.data.model
+package com.example.book.mvp.model
 
 data class LyricsResponse(
     val lyrics: String,

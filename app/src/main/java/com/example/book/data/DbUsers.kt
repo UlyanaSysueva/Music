@@ -1,11 +1,10 @@
 package com.example.book.data
 
-import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import com.example.book.domain.User
+import com.example.book.mvp.model.User
 
 class DbUsers(val context: Context, val factory: SQLiteDatabase.CursorFactory?) :
     SQLiteOpenHelper(context, "app.db", factory, 1) {

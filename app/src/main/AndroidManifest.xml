@@ -21,13 +21,14 @@
         android:name=".di.BookApplication"
         android:requestLegacyExternalStorage="true">
         <activity
-            android:name=".presentation.Home"
+            android:name=".mvp.view.Home"
             android:exported="false" />
         <activity
-            android:name=".presentation.Registration"
+            android:name=".mvp.view.Registration"
             android:exported="false" />
         <activity
-            android:name=".presentation.MainActivity"
+            android:name=".mvp.view.MainActivity"
+            android:launchMode="singleTask"
             android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
